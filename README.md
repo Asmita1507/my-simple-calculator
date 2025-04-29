@@ -29,3 +29,4 @@ simple-calculator/ ├── index.html # Main HTML file ├── style.css # C
 1. Clone the repository:
    ```bash
    git clone https://github.com/your-username/simple-calculator.git
+# END OF README
