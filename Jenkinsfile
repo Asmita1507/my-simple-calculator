@@ -70,7 +70,7 @@ pipeline {
             steps {
                 script {
                     echo "Application deployed successfully!"
-                    echo "Access your project at: http://${HOST_IP}:3000"
+                    echo "Access your project at: http://${HOST_IP}:4000"
                 }
             }
         }

@@ -1,12 +1,11 @@
-#docker-compose
 version: '3.8'
 services:
   calculator-app:
     build: .
     ports:
-      - "3000:3000"
+      - "4000:4000"
     volumes:
       - .:/app
     environment:
       - NODE_ENV=production
-    command: ["npx", "serve", "-s", "."]
+    command: ["npx", "serve", "-l", "4000", "-s", "."]
