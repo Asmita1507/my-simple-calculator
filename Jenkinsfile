@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "my-simple-calculator:${BUILD_NUMBER}"
         DOCKER_COMPOSE_FILE = "docker-compose.yml"
+        HOST_IP = "localhost" // Replace with your Jenkins server's IP or hostname
     }
 
     stages {
@@ -16,7 +17,6 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 script {
-                    // Use bat for Windows, sh for Unix-like systems
                     if (isUnix()) {
                         sh 'npm install'
                     } else {
@@ -41,7 +41,12 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build(DOCKER_IMAGE)
+                    // Build the Docker image using docker-compose build
+                    if (isUnix()) {
+                        sh "docker-compose -f ${DOCKER_COMPOSE_FILE} build"
+                    } else {
+                        bat "docker-compose -f ${DOCKER_COMPOSE_FILE} build"
+                    }
                 }
             }
         }
@@ -49,25 +54,23 @@ pipeline {
         stage('Deploy with Docker Compose') {
             steps {
                 script {
+                    // Stop any existing containers to avoid conflicts
                     if (isUnix()) {
+                        sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down || true"
                         sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
                     } else {
+                        bat "docker-compose -f ${DOCKER_COMPOSE_FILE} down || true"
                         bat "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
                     }
                 }
             }
         }
 
-        stage('Post Actions') {
+        stage('Generate Access Link') {
             steps {
-                echo 'Deployment completed!'
-                // Optional: Cleanup (stop containers if needed)
                 script {
-                    if (isUnix()) {
-                        sh 'docker-compose down'
-                    } else {
-                        bat 'docker-compose down'
-                    }
+                    echo "Application deployed successfully!"
+                    echo "Access your project at: http://${HOST_IP}:3000"
                 }
             }
         }
