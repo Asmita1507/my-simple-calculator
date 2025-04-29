@@ -1,25 +1,27 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = "my-simple-calculator:${BUILD_NUMBER}"
+        DOCKER_COMPOSE_FILE = "docker-compose.yml"
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/amrita-de/simple-calculator.git'
+                git url: 'https://github.com/Asmita1507/my-simple-calculator.git', branch: 'master'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 script {
-                    // Install your dependencies here
-                    // Assuming you're using npm or similar package manager
-                    // This is for Windows-based machines, so using `bat` instead of `sh`
-
-                    // If using npm
-                    bat 'npm install'
-
-                    // If using pip (for Python projects)
-                    // bat 'pip install -r requirements.txt'
+                    // Use bat for Windows, sh for Unix-like systems
+                    if (isUnix()) {
+                        sh 'npm install'
+                    } else {
+                        bat 'npm install'
+                    }
                 }
             }
         }
@@ -27,22 +29,56 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    // Run your test commands here
-                    // Again, use `bat` for Windows compatibility
+                    if (isUnix()) {
+                        sh 'npm test'
+                    } else {
+                        bat 'npm test'
+                    }
+                }
+            }
+        }
 
-                    // Example for running tests with npm
-                    bat 'npm test'
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build(DOCKER_IMAGE)
+                }
+            }
+        }
 
-                    // Example for running tests with pytest (for Python projects)
-                    // bat 'pytest'
+        stage('Deploy with Docker Compose') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
+                    } else {
+                        bat "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
+                    }
                 }
             }
         }
 
         stage('Post Actions') {
             steps {
-                echo 'Test completed!'
+                echo 'Deployment completed!'
+                // Optional: Cleanup (stop containers if needed)
+                script {
+                    if (isUnix()) {
+                        sh 'docker-compose down'
+                    } else {
+                        bat 'docker-compose down'
+                    }
+                }
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+        failure {
+            echo 'Pipeline failed. Check logs for details.'
         }
     }
 }
