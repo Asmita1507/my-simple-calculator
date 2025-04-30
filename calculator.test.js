@@ -20,4 +20,7 @@ describe('Calculator Functions', () => {
     test('calculate handles invalid expression', () => {
         expect(calculate('2+')).toBe('Error')  ;
     });
+    test('appendToDisplay adds value to zero', () => {
+        expect(appendToDisplay('0', '5')).toBe('1');
+    });
 });
